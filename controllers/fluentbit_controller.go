@@ -19,6 +19,7 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"reflect"
 
 	rbacv1 "k8s.io/api/rbac/v1"
 
@@ -130,6 +131,17 @@ func (r *FluentBitReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	logPath := r.getContainerLogPath(fb)
 	ds := operator.MakeDaemonSet(fb, logPath)
 	if _, err := controllerutil.CreateOrPatch(ctx, r.Client, ds, r.mutate(ds, &fb)); err != nil {
+		// Check if error is due to selector change
+		if err.Error() == "DaemonSet selector change detected, recreation required" {
+			r.Log.Info("DaemonSet selector changed, deleting for recreation",
+				"daemonset", ds.Name, "namespace", ds.Namespace)
+			// Delete the DaemonSet
+			if err := r.Client.Delete(ctx, ds); err != nil && !errors.IsNotFound(err) {
+				return ctrl.Result{}, err
+			}
+			// Requeue to recreate
+			return ctrl.Result{Requeue: true}, nil
+		}
 		return ctrl.Result{}, err
 	}
 
@@ -162,6 +174,15 @@ func (r *FluentBitReconciler) mutate(obj client.Object, fb *fluentbitv1alpha2.Fl
 		expected := operator.MakeDaemonSet(*fb, logPath)
 
 		return func() error {
+			// Check if selector would change (immutable field)
+			if o.Spec.Selector != nil && expected.Spec.Selector != nil {
+				if !reflect.DeepEqual(o.Spec.Selector.MatchLabels, expected.Spec.Selector.MatchLabels) {
+					// Selector is immutable, we need to delete and recreate
+					// Return a specific error to signal deletion is needed
+					return fmt.Errorf("DaemonSet selector change detected, recreation required")
+				}
+			}
+
 			// Preserve the kubectl.kubernetes.io/restartedAt annotation
 			restartedAt := o.Spec.Template.Annotations["kubectl.kubernetes.io/restartedAt"]
 
