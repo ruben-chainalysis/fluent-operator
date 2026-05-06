@@ -101,7 +101,10 @@ type Elasticsearch struct {
 	LogstashPrefixKey string `json:"logstashPrefixKey,omitempty"`
 	// When enabled, mapping types is removed and Type option is ignored. Types are deprecated in APIs in v7.0. This options is for v7.0 or later.
 	SuppressTypeName string `json:"suppressTypeName,omitempty"`
-	*plugins.TLS     `json:"tls,omitempty"`
+	// Bulk request size limit in bytes. Limits the size of bulk requests sent to Elasticsearch (default: unlimited).
+	// +kubebuilder:validation:Pattern:="^\\d+(\\.\\d+)?(k|K|KB|kb|m|M|MB|mb|g|G|GB|gb)?$"
+	BulkMessageRequestSize string `json:"bulkMessageRequestSize,omitempty"`
+	*plugins.TLS           `json:"tls,omitempty"`
 	// Include fluentbit networking options for this output-plugin
 	*plugins.Networking `json:"networking,omitempty"`
 	// Limit the maximum number of Chunks in the filesystem for the current output logical destination.
@@ -158,6 +161,7 @@ func (es *Elasticsearch) Params(sl plugins.SecretLoader) (*params.KVs, error) {
 	plugins.InsertKVString(kvs, "Write_Operation", es.WriteOperation)
 	plugins.InsertKVString(kvs, "Logstash_Prefix_Key", es.LogstashPrefixKey)
 	plugins.InsertKVString(kvs, "Suppress_Type_Name", es.SuppressTypeName)
+	plugins.InsertKVString(kvs, "Bulk_Message_Request_Size", es.BulkMessageRequestSize)
 	plugins.InsertKVString(kvs, "storage.total_limit_size", es.TotalLimitSize)
 
 	plugins.InsertKVField(kvs, "Logstash_Format", es.LogstashFormat)

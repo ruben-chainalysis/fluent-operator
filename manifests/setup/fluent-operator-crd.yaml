@@ -4788,6 +4788,11 @@ spec:
                       otherwise the value must be according to the Unit Size specification.
                     pattern: ^\d+(k|K|KB|kb|m|M|MB|mb|g|G|GB|gb)?$
                     type: string
+                  bulkMessageRequestSize:
+                    description: 'Bulk request size limit in bytes. Limits the size
+                      of bulk requests sent to Elasticsearch (default: unlimited).'
+                    pattern: ^\d+(\.\d+)?(k|K|KB|kb|m|M|MB|mb|g|G|GB|gb)?$
+                    type: string
                   cloudAuth:
                     description: Specify the credentials to use to connect to Elastic's
                       Elasticsearch Service running on Elastic Cloud.
@@ -34862,6 +34867,11 @@ spec:
                       To set an unlimited amount of memory set this value to False,
                       otherwise the value must be according to the Unit Size specification.
                     pattern: ^\d+(k|K|KB|kb|m|M|MB|mb|g|G|GB|gb)?$
+                    type: string
+                  bulkMessageRequestSize:
+                    description: 'Bulk request size limit in bytes. Limits the size
+                      of bulk requests sent to Elasticsearch (default: unlimited).'
+                    pattern: ^\d+(\.\d+)?(k|K|KB|kb|m|M|MB|mb|g|G|GB|gb)?$
                     type: string
                   cloudAuth:
                     description: Specify the credentials to use to connect to Elastic's
